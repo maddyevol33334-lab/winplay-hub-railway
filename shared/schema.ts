@@ -1,5 +1,5 @@
 
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,24 +12,27 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("user"), // 'user' | 'admin'
   points: integer("points").notNull().default(0),
   isBlocked: boolean("is_blocked").notNull().default(false),
+  phoneNumber: text("phone_number").notNull().unique(),
+  deviceId: text("device_id").notNull(), // To prevent multiple accounts on same device
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const withdrawals = pgTable("withdrawals", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(), // Foreign key handled in logic or relation
+  userId: integer("user_id").notNull(),
   amountPoints: integer("amount_points").notNull(),
-  amountUsd: text("amount_usd").notNull(), // Store as string to avoid float precision issues
+  amountUsd: text("amount_usd").notNull(),
+  amountInr: text("amount_inr").notNull(), // Added INR
   method: text("method").notNull(), // 'paypal', 'upi', 'bank'
-  details: text("details").notNull(), // JSON string of account details
-  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
+  details: text("details").notNull(),
+  status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  type: text("type").notNull(), // 'daily_login', 'game_tap', 'game_trivia', 'game_memory', 'ad_watch'
+  type: text("type").notNull(), // 'daily_login', 'game_math', 'game_scramble', 'ad_watch'
   pointsEarned: integer("points_earned").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -42,6 +45,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   role: true, 
   isBlocked: true, 
   createdAt: true 
+}).extend({
+  phoneNumber: z.string().min(10, "Invalid phone number"),
+  deviceId: z.string()
 });
 
 export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
@@ -66,32 +72,15 @@ export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 
-// === API CONTRACT TYPES ===
+// === CONSTANTS ===
 
-// Auth
-export type LoginRequest = InsertUser;
-export type RegisterRequest = InsertUser;
+export const POINTS_PER_USD = 1000 / 1.5;
+export const USD_TO_INR = 83.5; // Example conversion
+export const POINTS_PER_INR = POINTS_PER_USD / USD_TO_INR;
 
-// Game/Ad
-export type EarnPointsRequest = {
-  type: 'daily_login' | 'game_tap' | 'game_trivia' | 'game_memory' | 'ad_watch';
-  score?: number; // For games where score matters, though we simplify to fixed points usually
-};
-
-// Admin
-export type UpdateWithdrawalStatusRequest = {
-  status: 'approved' | 'rejected';
-};
-
-export type BlockUserRequest = {
-  isBlocked: boolean;
-};
-
-// Constants
-export const POINTS_PER_USD = 1000 / 1.5; // 666.66 points = 1 USD
 export const REWARD_RATES = {
-  AD_WATCH: 50,
-  GAME_PLAY: 10,
-  GAME_WIN: 30,
-  DAILY_LOGIN: 50,
+  AD_WATCH: 20, // Updated to 20
+  GAME_PLAY: 5,
+  GAME_WIN: 15, // Harder to get
+  DAILY_LOGIN: 30,
 };
