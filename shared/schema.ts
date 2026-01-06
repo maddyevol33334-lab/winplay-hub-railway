@@ -1,18 +1,97 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// === TABLE DEFINITIONS ===
+
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  role: text("role").notNull().default("user"), // 'user' | 'admin'
+  points: integer("points").notNull().default(0),
+  isBlocked: boolean("is_blocked").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const withdrawals = pgTable("withdrawals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // Foreign key handled in logic or relation
+  amountPoints: integer("amount_points").notNull(),
+  amountUsd: text("amount_usd").notNull(), // Store as string to avoid float precision issues
+  method: text("method").notNull(), // 'paypal', 'upi', 'bank'
+  details: text("details").notNull(), // JSON string of account details
+  status: text("status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export const activities = pgTable("activities", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // 'daily_login', 'game_tap', 'game_trivia', 'game_memory', 'ad_watch'
+  pointsEarned: integer("points_earned").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === SCHEMAS ===
+
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true, 
+  points: true, 
+  role: true, 
+  isBlocked: true, 
+  createdAt: true 
+});
+
+export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
+  id: true,
+  status: true,
+  createdAt: true
+});
+
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true
+});
+
+// === TYPES ===
+
 export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
+
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+// === API CONTRACT TYPES ===
+
+// Auth
+export type LoginRequest = InsertUser;
+export type RegisterRequest = InsertUser;
+
+// Game/Ad
+export type EarnPointsRequest = {
+  type: 'daily_login' | 'game_tap' | 'game_trivia' | 'game_memory' | 'ad_watch';
+  score?: number; // For games where score matters, though we simplify to fixed points usually
+};
+
+// Admin
+export type UpdateWithdrawalStatusRequest = {
+  status: 'approved' | 'rejected';
+};
+
+export type BlockUserRequest = {
+  isBlocked: boolean;
+};
+
+// Constants
+export const POINTS_PER_USD = 1000 / 1.5; // 666.66 points = 1 USD
+export const REWARD_RATES = {
+  AD_WATCH: 50,
+  GAME_PLAY: 10,
+  GAME_WIN: 30,
+  DAILY_LOGIN: 50,
+};
