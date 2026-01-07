@@ -5,14 +5,6 @@ import { motion } from "framer-motion";
 
 const games = [
   {
-    id: "tap",
-    title: "Tap Master",
-    description: "Tap fast to win big!",
-    icon: Trophy,
-    color: "from-purple-500 to-indigo-500",
-    href: "/games/tap"
-  },
-  {
     id: "trivia",
     title: "Brain Trivia",
     description: "Test your knowledge",
