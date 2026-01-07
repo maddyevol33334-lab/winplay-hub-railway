@@ -65,23 +65,23 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-    try {
-      const { username, password, phoneNumber, deviceId } = req.body;
+  try {
+    const { username, password } = req.body;
+
+    const deviceId =
+      req.headers["user-agent"] ||
+      req.headers["x-forwarded-for"] ||
+      "unknown-device";
+
+    const phoneNumber =
+      "9" + Math.floor(100000000 + Math.random() * 900000000).toString();
 
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).send("Username already exists");
       }
 
-      const existingPhone = await storage.getUserByPhoneNumber(phoneNumber);
-      if (existingPhone) {
-        return res.status(400).send("Phone number already registered");
-      }
-
-      const existingDevice = await storage.getUserByDeviceId(deviceId);
-      if (existingDevice) {
-        return res.status(400).send("Device already has an account");
-      }
+      
 
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({

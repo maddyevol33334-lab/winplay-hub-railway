@@ -1,54 +1,60 @@
-
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// === TABLE DEFINITIONS ===
-
+// ================= USERS =================
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  phoneNumber: text("phone_number").notNull().unique(),
-  deviceId: text("device_id").notNull(), // To prevent multiple accounts on same device
-  role: text("role").notNull().default("user"), // 'user' | 'admin'
+  phoneNumber: text("phone_number"),
+deviceId: text("device_id"),
+
+  role: text("role").notNull().default("user"),
   points: integer("points").notNull().default(0),
   isBlocked: boolean("is_blocked").notNull().default(false),
+
+  referralCode: text("referral_code").notNull().unique(),
+  referredBy: text("referred_by"),
+  referralEarnings: integer("referral_earnings").notNull().default(0),
+
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ================= WITHDRAWALS =================
 export const withdrawals = pgTable("withdrawals", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   amountPoints: integer("amount_points").notNull(),
   amountUsd: text("amount_usd").notNull(),
   amountInr: text("amount_inr").notNull(),
-  currency: text("currency").notNull().default("USD"), // 'USD' | 'INR'
-  method: text("method").notNull(), // 'paypal', 'upi', 'bank'
+  currency: text("currency").notNull().default("USD"),
+  method: text("method").notNull(),
   details: text("details").notNull(),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ================= ACTIVITIES =================
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  type: text("type").notNull(), 
+  type: text("type").notNull(),
   pointsEarned: integer("points_earned").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// === SCHEMAS ===
-
-export const insertUserSchema = createInsertSchema(users).extend({
-  phoneNumber: z.string().min(10, "Invalid phone number"),
+// ================= SCHEMAS =================
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  points: true,
+  role: true,
+  isBlocked: true,
+  referralEarnings: true,
+  createdAt: true
+}).extend({
+  phoneNumber: z.string().min(10),
   deviceId: z.string().min(1),
-}).omit({ 
-  id: true, 
-  points: true, 
-  role: true, 
-  isBlocked: true, 
-  createdAt: true 
 });
 
 export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({
@@ -62,27 +68,18 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true
 });
 
-// === TYPES ===
-
+// ================= TYPES =================
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-
 export type Withdrawal = typeof withdrawals.$inferSelect;
-export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
-
 export type Activity = typeof activities.$inferSelect;
-export type InsertActivity = z.infer<typeof insertActivitySchema>;
 
-// === API CONTRACT TYPES ===
+// ================= CONSTANTS =================
+export const POINTS_PER_USD = 1500 / 1.2;
+export const USD_TO_INR = 83;
 
-export type LoginRequest = z.infer<typeof insertUserSchema>;
-export type RegisterRequest = z.infer<typeof insertUserSchema>;
-
-// Constants
-export const POINTS_PER_USD = 1000 / 1.5;
-export const USD_TO_INR = 83; // Current approx rate
 export const REWARD_RATES = {
-  AD_WATCH: 20, 
+  AD_WATCH: 20,
   GAME_PLAY: 5,
   GAME_WIN: 15,
   DAILY_LOGIN: 20,

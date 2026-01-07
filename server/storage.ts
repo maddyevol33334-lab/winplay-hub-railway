@@ -1,10 +1,14 @@
-
 import { db } from "./db";
 import {
-  users, withdrawals, activities,
-  type User, type InsertUser,
-  type Withdrawal, type InsertWithdrawal,
-  type Activity, type InsertActivity
+  users,
+  withdrawals,
+  activities,
+  type User,
+  type InsertUser,
+  type Withdrawal,
+  type InsertWithdrawal,
+  type Activity,
+  type InsertActivity,
 } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import session from "express-session";
@@ -53,17 +57,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   }
 
   async getUserByPhoneNumber(phone: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.phoneNumber, phone));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.phoneNumber, phone));
     return user;
   }
 
   async getUserByDeviceId(deviceId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.deviceId, deviceId));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.deviceId, deviceId));
     return user;
   }
 
@@ -94,8 +107,13 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async createWithdrawal(insertWithdrawal: InsertWithdrawal): Promise<Withdrawal> {
-    const [withdrawal] = await db.insert(withdrawals).values(insertWithdrawal).returning();
+  async createWithdrawal(
+    insertWithdrawal: InsertWithdrawal,
+  ): Promise<Withdrawal> {
+    const [withdrawal] = await db
+      .insert(withdrawals)
+      .values(insertWithdrawal)
+      .returning();
     return withdrawal;
   }
 
@@ -108,10 +126,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllWithdrawals(): Promise<Withdrawal[]> {
-    return await db.select().from(withdrawals).orderBy(desc(withdrawals.createdAt));
+    return await db
+      .select()
+      .from(withdrawals)
+      .orderBy(desc(withdrawals.createdAt));
   }
 
-  async updateWithdrawalStatus(id: number, status: string): Promise<Withdrawal> {
+  async updateWithdrawalStatus(
+    id: number,
+    status: string,
+  ): Promise<Withdrawal> {
     const [withdrawal] = await db
       .update(withdrawals)
       .set({ status })
@@ -121,7 +145,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const [activity] = await db.insert(activities).values(insertActivity).returning();
+    const [activity] = await db
+      .insert(activities)
+      .values(insertActivity)
+      .returning();
     return activity;
   }
 
@@ -135,3 +162,14 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
+
+const PgSession = connectPg(session);
+
+export const sessionStore = new PgSession({
+  pool,
+  tableName: "session",
+  createTableIfMissing: true,
+});
