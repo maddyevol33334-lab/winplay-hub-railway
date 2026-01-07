@@ -9,6 +9,7 @@ import Auth from "@/pages/Auth";
 import Profile from "@/pages/Profile";
 import Wallet from "@/pages/Wallet";
 import Admin from "@/pages/Admin";
+import TapGame from "@/pages/games/TapGame";
 import MemoryGame from "@/pages/games/MemoryGame";
 import TriviaGame from "@/pages/games/TriviaGame";
 import NotFound from "@/pages/not-found";
@@ -37,6 +38,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={Auth} />
       <ProtectedRoute path="/" component={Home} />
+      <ProtectedRoute path="/games/tap" component={TapGame} />
       <ProtectedRoute path="/games/memory" component={MemoryGame} />
       <ProtectedRoute path="/games/trivia" component={TriviaGame} />
       <ProtectedRoute path="/wallet" component={Wallet} />
