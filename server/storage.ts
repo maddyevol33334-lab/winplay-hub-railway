@@ -17,6 +17,8 @@ export interface IStorage {
   // User
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByPhoneNumber(phone: string): Promise<User | undefined>;
+  getUserByDeviceId(deviceId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserPoints(id: number, points: number): Promise<User>;
   updateUserBlockStatus(id: number, isBlocked: boolean): Promise<User>;
@@ -45,7 +47,6 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  // User
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -53,6 +54,16 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUserByPhoneNumber(phone: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.phoneNumber, phone));
+    return user;
+  }
+
+  async getUserByDeviceId(deviceId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.deviceId, deviceId));
     return user;
   }
 
@@ -83,7 +94,6 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  // Withdrawal
   async createWithdrawal(insertWithdrawal: InsertWithdrawal): Promise<Withdrawal> {
     const [withdrawal] = await db.insert(withdrawals).values(insertWithdrawal).returning();
     return withdrawal;
@@ -110,7 +120,6 @@ export class DatabaseStorage implements IStorage {
     return withdrawal;
   }
 
-  // Activity
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
     const [activity] = await db.insert(activities).values(insertActivity).returning();
     return activity;

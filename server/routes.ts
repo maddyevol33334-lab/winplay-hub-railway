@@ -3,9 +3,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { api, errorSchemas } from "@shared/routes";
+import { api } from "@shared/routes";
 import { z } from "zod";
-import { REWARD_RATES, POINTS_PER_USD } from "@shared/schema";
+import { REWARD_RATES, POINTS_PER_USD, USD_TO_INR } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -31,7 +31,7 @@ export async function registerRoutes(
   app.post(api.user.earn.path, requireAuth, async (req, res) => {
     try {
       const input = api.user.earn.input.parse(req.body);
-      const user = req.user!;
+      const user = req.user as any;
 
       if (user.isBlocked) {
         return res.status(403).json({ message: "Account blocked" });
@@ -45,7 +45,6 @@ export async function registerRoutes(
           pointsToAdd = REWARD_RATES.AD_WATCH;
           break;
         case 'daily_login':
-          // Check if already claimed today
           const today = new Date();
           const startOfDay = new Date(today.setHours(0, 0, 0, 0));
           const existing = (await storage.getActivitiesByUser(user.id)).find(
@@ -59,23 +58,16 @@ export async function registerRoutes(
         case 'game_tap':
         case 'game_trivia':
         case 'game_memory':
-          // Simple logic: If they played, they get participation points. 
-          // If they got a high score (mock logic), they get win points.
-          // For now, just give standard game points + bonus if "score" suggests a win
           pointsToAdd = REWARD_RATES.GAME_PLAY;
           if (input.score && input.score > 0) {
-             // Mock logic: win if score > threshold (handled by frontend mostly)
-             // Let's just trust the frontend for MVP or give a flat rate
              pointsToAdd += REWARD_RATES.GAME_WIN;
           }
           break;
       }
 
-      // Update User
       const newBalance = user.points + pointsToAdd;
       await storage.updateUserPoints(user.id, newBalance);
 
-      // Log Activity
       await storage.createActivity({
         userId: user.id,
         type: input.type,
@@ -92,35 +84,34 @@ export async function registerRoutes(
     }
   });
 
-  // Get Activities
   app.get(api.user.getActivities.path, requireAuth, async (req, res) => {
-    const activities = await storage.getActivitiesByUser(req.user!.id);
+    const activities = await storage.getActivitiesByUser((req.user as any).id);
     res.json(activities);
   });
 
   // === WITHDRAWAL ROUTES ===
 
-  // Create Withdrawal
   app.post(api.withdrawals.create.path, requireAuth, async (req, res) => {
     try {
-      const input = api.withdrawals.create.input.parse(req.body);
-      const user = req.user!;
+      const body = req.body as any;
+      const input = api.withdrawals.create.input.parse(body);
+      const user = req.user as any;
 
       if (user.points < input.amountPoints) {
         return res.status(400).json({ message: "Insufficient points" });
       }
 
-      // Calculate USD value
       const usdValue = (input.amountPoints / 1000) * 1.5;
+      const inrValue = usdValue * USD_TO_INR;
       
-      // Deduct points
       await storage.updateUserPoints(user.id, user.points - input.amountPoints);
 
-      // Create record
       const withdrawal = await storage.createWithdrawal({
         userId: user.id,
         amountPoints: input.amountPoints,
         amountUsd: usdValue.toFixed(2),
+        amountInr: inrValue.toFixed(2),
+        currency: body.currency || 'USD',
         method: input.method,
         details: input.details,
       });
@@ -134,9 +125,8 @@ export async function registerRoutes(
     }
   });
 
-  // List Withdrawals
   app.get(api.withdrawals.list.path, requireAuth, async (req, res) => {
-    const withdrawals = await storage.getWithdrawalsByUser(req.user!.id);
+    const withdrawals = await storage.getWithdrawalsByUser((req.user as any).id);
     res.json(withdrawals);
   });
 

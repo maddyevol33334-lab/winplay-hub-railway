@@ -1,13 +1,22 @@
+
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useWithdrawals } from "@/hooks/use-withdrawals";
 import { motion } from "framer-motion";
-import { Loader2, ArrowUpRight, History } from "lucide-react";
+import { Loader2, ArrowUpRight, History, Wallet as WalletIcon, CreditCard, Landmark, QrCode } from "lucide-react";
+import { USD_TO_INR } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Wallet() {
   const { user } = useAuth();
   const { withdrawals, createWithdrawal, isCreating } = useWithdrawals();
+  const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
   const [method, setMethod] = useState<'paypal' | 'upi' | 'bank'>('paypal');
   const [details, setDetails] = useState('');
   const [amount, setAmount] = useState(100);
@@ -17,132 +26,204 @@ export default function Wallet() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     createWithdrawal({
+      currency,
       method,
       details: JSON.stringify({ account: details }),
-      amountPoints: Number(amount)
+      amountPoints: Number(amount),
+      amountUsd: (Number(amount) * 1.5 / 1000).toFixed(2),
+      amountInr: (Number(amount) * 1.5 / 1000 * USD_TO_INR).toFixed(2)
     });
     setDetails('');
     setAmount(100);
   };
 
+  const usdValue = (user.points * 1.5 / 1000).toFixed(2);
+  const inrValue = (Number(usdValue) * USD_TO_INR).toFixed(2);
+
   return (
     <Layout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold font-display">Wallet</h1>
-          <p className="text-muted-foreground">Manage your earnings</p>
-        </div>
-
-        {/* Balance Card */}
-        <div className="bg-gradient-to-r from-secondary to-primary p-6 rounded-3xl text-white shadow-lg">
-          <p className="opacity-80 font-medium">Available Balance</p>
-          <div className="flex items-baseline gap-2 mt-1">
-            <h2 className="text-4xl font-bold">{user.points}</h2>
-            <span className="text-sm opacity-80">pts</span>
+      <div className="max-w-md mx-auto space-y-8 pb-20">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Wallet</h1>
+            <p className="text-sm text-muted-foreground">Cash out your hard work</p>
           </div>
-          <div className="mt-4 pt-4 border-t border-white/20 flex justify-between items-center">
-            <p className="text-sm font-medium">Estimated Value</p>
-            <p className="text-xl font-bold">${(user.points * 1.5 / 1000).toFixed(2)}</p>
+          <div className="p-3 bg-primary/10 rounded-2xl">
+            <WalletIcon className="w-6 h-6 text-primary" />
           </div>
-        </div>
+        </header>
 
-        {/* Withdraw Form */}
+        {/* Balance Display */}
+        <Card className="border-0 bg-primary text-primary-foreground shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <WalletIcon size={120} />
+          </div>
+          <CardHeader className="relative z-10 pb-2">
+            <p className="text-sm font-medium opacity-80">Total Balance</p>
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-5xl font-bold">{user.points}</h2>
+              <span className="text-xl font-medium opacity-80">pts</span>
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10 grid grid-cols-2 gap-4 mt-4 pt-6 border-t border-primary-foreground/10 bg-black/5">
+            <div>
+              <p className="text-[10px] uppercase font-bold tracking-wider opacity-60">USD Equivalent</p>
+              <p className="text-2xl font-bold">${usdValue}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] uppercase font-bold tracking-wider opacity-60">INR Equivalent</p>
+              <p className="text-2xl font-bold">₹{inrValue}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Withdrawal Request */}
         <div className="space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <ArrowUpRight className="w-5 h-5 text-primary" /> Request Withdrawal
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold">Redeem Points</h3>
+            <Badge variant="outline" className="text-[10px] px-2">Min. 100 pts</Badge>
+          </div>
           
-          <form onSubmit={handleSubmit} className="glass-card p-6 rounded-2xl space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Method</label>
-              <div className="flex gap-2">
-                {(['paypal', 'upi', 'bank'] as const).map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setMethod(m)}
-                    className={`flex-1 py-2 px-3 rounded-xl text-sm font-bold capitalize transition-colors border-2 ${
-                      method === m 
-                        ? 'border-primary bg-primary/10 text-primary' 
-                        : 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Select Currency</Label>
+              <Tabs value={currency} onValueChange={(val) => {
+                setCurrency(val as 'USD' | 'INR');
+                if (val === 'INR' && method === 'paypal') setMethod('upi');
+                if (val === 'USD') setMethod('paypal');
+              }}>
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="USD">Global (USD)</TabsTrigger>
+                  <TabsTrigger value="INR">India (INR)</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Withdrawal Method</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {currency === 'USD' ? (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="col-span-2 py-6 border-primary bg-primary/5 text-primary"
                   >
-                    {m}
-                  </button>
-                ))}
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    PayPal
+                  </Button>
+                ) : (
+                  <>
+                    <Button 
+                      type="button" 
+                      variant={method === 'upi' ? 'default' : 'outline'}
+                      className="py-6"
+                      onClick={() => setMethod('upi')}
+                    >
+                      <QrCode className="w-4 h-4 mr-2" />
+                      UPI
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant={method === 'bank' ? 'default' : 'outline'}
+                      className="py-6"
+                      onClick={() => setMethod('bank')}
+                    >
+                      <Landmark className="w-4 h-4 mr-2" />
+                      Bank
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                {method === 'paypal' ? 'PayPal Email' : method === 'upi' ? 'UPI ID' : 'Bank Details'}
-              </label>
-              <input
-                type="text"
+              <Label htmlFor="details" className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                {method === 'paypal' ? 'PayPal Email Address' : method === 'upi' ? 'UPI ID (example@okaxis)' : 'Bank Details (A/C No + IFSC Code)'}
+              </Label>
+              <Input
+                id="details"
                 required
                 value={details}
                 onChange={e => setDetails(e.target.value)}
-                className="w-full p-3 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                placeholder="Enter account details"
+                placeholder={method === 'paypal' ? 'email@example.com' : method === 'upi' ? 'username@upi' : '0000 1111 2222, IFSC: SBIN00...'}
+                className="py-6"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Amount (Points)</label>
-              <input
+              <div className="flex justify-between items-center">
+                <Label htmlFor="amount" className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Amount in Points</Label>
+                <span className="text-[10px] font-bold text-primary">Max: {user.points} pts</span>
+              </div>
+              <Input
+                id="amount"
                 type="number"
                 min="100"
                 max={user.points}
                 value={amount}
                 onChange={e => setAmount(Number(e.target.value))}
-                className="w-full p-3 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                className="py-6 font-bold text-lg"
               />
-              <p className="text-xs text-muted-foreground text-right">Min: 100 pts</p>
             </div>
 
-            <button
-              type="submit"
+            <Button 
+              type="submit" 
+              className="w-full py-7 text-lg font-bold shadow-lg"
               disabled={isCreating || user.points < 100 || amount > user.points}
-              className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isCreating ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Withdraw'}
-            </button>
+              {isCreating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ArrowUpRight className="w-5 h-5 mr-2" />}
+              Request Withdrawal
+            </Button>
           </form>
         </div>
 
         {/* History */}
         <div className="space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <History className="w-5 h-5 text-muted-foreground" /> Recent History
-          </h3>
+          <div className="flex items-center gap-2">
+            <History className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-lg font-bold">Transaction History</h3>
+          </div>
           
-          <div className="space-y-3">
+          <div className="grid gap-3">
             {withdrawals?.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">No withdrawals yet.</p>
+              <Card className="border-dashed border-2">
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <p>No transactions yet.</p>
+                  <p className="text-xs">Your successful withdrawals will appear here.</p>
+                </CardContent>
+              </Card>
             )}
             
             {withdrawals?.map((w) => (
-              <motion.div 
-                key={w.id} 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-card p-4 rounded-xl flex justify-between items-center"
-              >
-                <div>
-                  <div className="font-bold capitalize">{w.method}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(w.createdAt!).toLocaleDateString()}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-lg">{w.amountPoints} pts</div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    w.status === 'approved' ? 'bg-green-100 text-green-700' :
-                    w.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {w.status}
-                  </span>
-                </div>
-              </motion.div>
+              <Card key={w.id} className="overflow-hidden border-0 bg-muted/30">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-background rounded-xl">
+                      {w.method === 'paypal' ? <CreditCard size={18} /> : w.method === 'upi' ? <QrCode size={18} /> : <Landmark size={18} />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm capitalize">{w.method}</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(w.createdAt!).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{w.amountPoints} pts</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">
+                      {w.currency === 'USD' ? `$${w.amountUsd}` : `₹${w.amountInr}`}
+                    </p>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-[9px] h-4 mt-1 uppercase font-black tracking-tighter ${
+                        w.status === 'approved' ? 'bg-green-100 text-green-700' :
+                        w.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}
+                    >
+                      {w.status}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>

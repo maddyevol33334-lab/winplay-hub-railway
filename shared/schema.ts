@@ -82,7 +82,7 @@ export type RegisterRequest = z.infer<typeof insertUserSchema>;
 export const POINTS_PER_USD = 1000 / 1.5;
 export const USD_TO_INR = 83; // Current approx rate
 export const REWARD_RATES = {
-  AD_WATCH: 20, // Reduced as requested
+  AD_WATCH: 20, 
   GAME_PLAY: 5,
   GAME_WIN: 15,
   DAILY_LOGIN: 20,
