@@ -108,6 +108,21 @@ export default function Home() {
           </div>
 
           <div className="space-y-4">
+            <Link href="/games/pro-quiz">
+              <div className="glass-card p-4 rounded-2xl flex items-center gap-4 hover:translate-x-1 transition-transform cursor-pointer mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                  <Trophy />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg">Pro Quiz</h4>
+                  <p className="text-sm text-muted-foreground">Hardcore trivia for big rewards!</p>
+                </div>
+                <div className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">
+                  Play
+                </div>
+              </div>
+            </Link>
+
             <Link href="/games/trivia">
               <div className="glass-card p-4 rounded-2xl flex items-center gap-4 hover:translate-x-1 transition-transform cursor-pointer">
                 <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-white shadow-lg">

@@ -10,6 +10,7 @@ import Profile from "@/pages/Profile";
 import Wallet from "@/pages/Wallet";
 import Admin from "@/pages/Admin";
 import Games from "@/pages/Games";
+import ProQuiz from "@/pages/games/ProQuiz";
 import MemoryGame from "@/pages/games/MemoryGame";
 import TriviaGame from "@/pages/games/TriviaGame";
 import NotFound from "@/pages/not-found";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/auth" component={Auth} />
       <ProtectedRoute path="/" component={Home} />
       <ProtectedRoute path="/games" component={Games} />
+      <ProtectedRoute path="/games/pro-quiz" component={ProQuiz} />
       <ProtectedRoute path="/games/memory" component={MemoryGame} />
       <ProtectedRoute path="/games/trivia" component={TriviaGame} />
       <ProtectedRoute path="/wallet" component={Wallet} />

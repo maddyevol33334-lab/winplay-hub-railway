@@ -5,6 +5,14 @@ import { motion } from "framer-motion";
 
 const games = [
   {
+    id: "pro-quiz",
+    title: "Pro Quiz",
+    description: "10 Questions • 45s • High Reward",
+    icon: Trophy,
+    color: "from-red-500 to-orange-600",
+    href: "/games/pro-quiz"
+  },
+  {
     id: "trivia",
     title: "Brain Trivia",
     description: "Test your knowledge",
