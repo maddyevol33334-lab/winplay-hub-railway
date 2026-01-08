@@ -1,18 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type LoginRequest, type RegisterRequest } from "@shared/routes";
+import { api } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+// Input types inferred from api definitions
+export type LoginRequest = z.infer<typeof api.auth.login.input>;
+export type RegisterRequest = z.infer<typeof api.auth.register.input>;
 
 export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: [api.auth.me.path],
+    queryKey: [api.auth.me?.path || "/api/user"],
     queryFn: async () => {
-      const res = await fetch(api.auth.me.path);
+      const path = api.auth.me?.path || "/api/user";
+      const res = await fetch(path);
       if (res.status === 401) return null;
       if (!res.ok) throw new Error("Failed to fetch user");
-      return api.auth.me.responses[200].parse(await res.json());
+      return api.auth.me?.responses[200].parse(await res.json());
     },
     retry: false,
   });
@@ -34,7 +40,7 @@ export function useAuth() {
       return api.auth.login.responses[200].parse(await res.json());
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([api.auth.me.path], data);
+      queryClient.setQueryData([api.auth.me?.path || "/api/user"], data);
       toast({ title: "Welcome back!", description: `Logged in as ${data.username}` });
     },
     onError: (error: Error) => {
@@ -60,12 +66,6 @@ export function useAuth() {
       return api.auth.register.responses[201].parse(await res.json());
     },
     onSuccess: () => {
-      // Auto login after register logic usually requires a separate login call or 
-      // the backend to set the cookie. Assuming standard flow where user logs in after.
-      // But if backend sets cookie on register, we can update state.
-      // For now, let's just toast and redirect to login if needed, or update if cookie set.
-      // Assuming cookie is set:
-      // queryClient.invalidateQueries({ queryKey: [api.auth.me.path] });
       toast({ title: "Account created!", description: "Please log in with your new account." });
     },
     onError: (error: Error) => {
@@ -75,10 +75,12 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch(api.auth.logout.path, { method: api.auth.logout.method });
+      const path = api.auth.logout?.path || "/api/logout";
+      const method = api.auth.logout?.method || "POST";
+      await fetch(path, { method });
     },
     onSuccess: () => {
-      queryClient.setQueryData([api.auth.me.path], null);
+      queryClient.setQueryData([api.auth.me?.path || "/api/user"], null);
       toast({ title: "Logged out", description: "See you next time!" });
     },
   });

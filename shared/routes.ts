@@ -49,6 +49,21 @@ export const api = {
         401: errorSchemas.unauthorized,
       },
     },
+    me: {
+      method: 'GET' as const,
+      path: '/api/user',
+      responses: {
+        200: z.custom<typeof users.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+      },
+    },
+    logout: {
+      method: 'POST' as const,
+      path: '/api/logout',
+      responses: {
+        200: z.object({ message: z.string() }),
+      },
+    },
   },
   user: {
     earn: {
