@@ -73,7 +73,7 @@ export function setupAuth(app: Express) {
 
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "This phone number is already registered." });
       }
 
       const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();

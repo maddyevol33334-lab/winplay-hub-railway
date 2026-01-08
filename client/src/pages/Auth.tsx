@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { Loader2, Gamepad2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +12,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const { login, register, isLoggingIn, isRegistering, user } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   if (user) {
     setLocation("/");
@@ -19,6 +21,14 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (phoneNumber.length < 10) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit phone number.",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       if (isLogin) {
         await login({ username: phoneNumber, password });
