@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const { login, register, isLoggingIn, isRegistering, user } = useAuth();
   const [, setLocation] = useLocation();
@@ -21,12 +21,12 @@ export default function Auth() {
     e.preventDefault();
     try {
       if (isLogin) {
-        await login({ username, password });
+        await login({ username: phoneNumber, password });
       } else {
         await register({ 
-          username, 
+          username: phoneNumber, 
           password,
-          phoneNumber: "9123456789",
+          phoneNumber: phoneNumber,
           deviceId: "web-client"
         });
       }
@@ -51,7 +51,7 @@ export default function Auth() {
           <h1 className="text-4xl font-extrabold text-foreground tracking-tight">
             Win<span className="text-primary">Play</span>
           </h1>
-          <p className="text-muted-foreground text-lg">Play games, earn real rewards.</p>
+          <p className="text-muted-foreground text-lg">Earn real rewards with your phone.</p>
         </motion.div>
 
         <motion.div
@@ -82,13 +82,13 @@ export default function Auth() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground ml-1">Username</label>
+                <label className="text-sm font-medium text-muted-foreground ml-1">Phone Number</label>
                 <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
-                  placeholder="Enter your username"
+                  placeholder="Enter your phone number"
                   required
                 />
               </div>

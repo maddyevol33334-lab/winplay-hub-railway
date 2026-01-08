@@ -18,7 +18,8 @@ export default function Profile() {
             {user.username[0].toUpperCase()}
           </div>
           <h1 className="text-2xl font-bold">{user.username}</h1>
-          <p className="text-muted-foreground">Joined {new Date(user.createdAt!).toLocaleDateString()}</p>
+          <p className="text-sm text-muted-foreground mt-1">Phone Number</p>
+          <p className="text-muted-foreground text-sm mt-4">Joined {new Date(user.createdAt!).toLocaleDateString()}</p>
           
           {user.role === 'admin' && (
             <Link href="/admin">
