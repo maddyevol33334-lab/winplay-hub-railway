@@ -24,33 +24,26 @@ export const errorSchemas = {
 export const api = {
   auth: {
     register: {
-      method: 'POST' as const,
-      path: '/api/register',
-      input: insertUserSchema,
-      responses: {
-        201: z.custom<typeof users.$inferSelect>(),
-        400: errorSchemas.validation,
-      },
-    },
+  method: 'POST' as const,
+  path: '/api/register',
+  input: z.object({
+    username: z.string(),
+    password: z.string(),
+    phoneNumber: z.string(),
+    deviceId: z.string(),
+  }),
+  responses: {
+    201: z.custom<typeof users.$inferSelect>(),
+    400: errorSchemas.validation,
+  },
+},
     login: {
       method: 'POST' as const,
       path: '/api/login',
-      input: insertUserSchema,
-      responses: {
-        200: z.custom<typeof users.$inferSelect>(),
-        401: errorSchemas.unauthorized,
-      },
-    },
-    logout: {
-      method: 'POST' as const,
-      path: '/api/logout',
-      responses: {
-        200: z.void(),
-      },
-    },
-    me: {
-      method: 'GET' as const,
-      path: '/api/user',
+      input: z.object({
+        username: z.string(),
+        password: z.string(),
+      }),
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
         401: errorSchemas.unauthorized,
