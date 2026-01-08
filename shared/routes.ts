@@ -61,7 +61,7 @@ export const api = {
       method: 'POST' as const,
       path: '/api/logout',
       responses: {
-        200: z.object({ message: z.string() }),
+        200: z.object({ message: z.string().optional() }),
       },
     },
   },

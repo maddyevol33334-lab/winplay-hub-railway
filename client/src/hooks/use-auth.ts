@@ -12,13 +12,12 @@ export function useAuth() {
   const { toast } = useToast();
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: [api.auth.me?.path || "/api/user"],
+    queryKey: [api.auth.me.path],
     queryFn: async () => {
-      const path = api.auth.me?.path || "/api/user";
-      const res = await fetch(path);
+      const res = await fetch(api.auth.me.path);
       if (res.status === 401) return null;
       if (!res.ok) throw new Error("Failed to fetch user");
-      return api.auth.me?.responses[200].parse(await res.json());
+      return api.auth.me.responses[200].parse(await res.json());
     },
     retry: false,
   });
@@ -40,7 +39,7 @@ export function useAuth() {
       return api.auth.login.responses[200].parse(await res.json());
     },
     onSuccess: (data) => {
-      queryClient.setQueryData([api.auth.me?.path || "/api/user"], data);
+      queryClient.setQueryData([api.auth.me.path], data);
       toast({ title: "Welcome back!", description: `Logged in as ${data.username}` });
     },
     onError: (error: Error) => {
@@ -75,12 +74,10 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const path = api.auth.logout?.path || "/api/logout";
-      const method = api.auth.logout?.method || "POST";
-      await fetch(path, { method });
+      await fetch(api.auth.logout.path, { method: api.auth.logout.method });
     },
     onSuccess: () => {
-      queryClient.setQueryData([api.auth.me?.path || "/api/user"], null);
+      queryClient.setQueryData([api.auth.me.path], null);
       toast({ title: "Logged out", description: "See you next time!" });
     },
   });

@@ -68,10 +68,11 @@ export function setupAuth(app: Express) {
   try {
     const { username, password } = req.body;
 
-    const deviceId =
+    const deviceId = String(
       req.headers["user-agent"] ||
       req.headers["x-forwarded-for"] ||
-      "unknown-device";
+      "unknown-device"
+    );
 
     const phoneNumber =
       "9" + Math.floor(100000000 + Math.random() * 900000000).toString();
