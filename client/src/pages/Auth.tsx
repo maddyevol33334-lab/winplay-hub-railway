@@ -17,17 +17,21 @@ export default function Auth() {
     return null;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      login({ username, password });
-    } else {
-      register({ 
-        username, 
-        password,
-        phoneNumber: "9" + Math.floor(100000000 + Math.random() * 900000000).toString(),
-        deviceId: "web-client"
-      });
+    try {
+      if (isLogin) {
+        await login({ username, password });
+      } else {
+        await register({ 
+          username, 
+          password,
+          phoneNumber: "9123456789",
+          deviceId: "web-client"
+        });
+      }
+    } catch (err) {
+      console.error("Auth form submission error:", err);
     }
   };
 

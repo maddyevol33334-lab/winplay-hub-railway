@@ -53,8 +53,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   referralEarnings: true,
   createdAt: true
 }).extend({
-  phoneNumber: z.string().min(10),
-  deviceId: z.string().min(1),
+  phoneNumber: z.string().min(10).optional(),
+  deviceId: z.string().min(1).optional(),
 });
 
 export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({

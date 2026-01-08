@@ -80,13 +80,20 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: any): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
-        ...insertUser,
-        referralCode: insertUser.referralCode || Math.random().toString(36).substring(2, 8).toUpperCase()
-      })
+        username: insertUser.username,
+        password: insertUser.password,
+        phoneNumber: insertUser.phoneNumber || "9123456789",
+        deviceId: String(insertUser.deviceId || "unknown"),
+        role: insertUser.role || "user",
+        points: insertUser.points || 0,
+        isBlocked: insertUser.isBlocked || false,
+        referralCode: insertUser.referralCode || Math.random().toString(36).substring(2, 8).toUpperCase(),
+        referralEarnings: insertUser.referralEarnings || 0
+      } as any)
       .returning();
     return user;
   }

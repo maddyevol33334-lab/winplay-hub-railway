@@ -65,46 +65,44 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
+    try {
+      const { username, password } = req.body;
 
-    const deviceId = String(
-      req.headers["user-agent"] ||
-      req.headers["x-forwarded-for"] ||
-      "unknown-device"
-    );
-
-    const phoneNumber =
-      "9" + Math.floor(100000000 + Math.random() * 900000000).toString();
+      const deviceId = req.headers["user-agent"] || "unknown-device";
+      const phoneNumber = req.body.phoneNumber || "9123456789";
 
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        return res.status(400).send("Username already exists");
+        return res.status(400).json({ message: "Username already exists" });
       }
 
+      const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const hashedPassword = await hashPassword(password);
       
+      const user = await storage.createUser({
+        username,
+        password: hashedPassword,
+        phoneNumber,
+        deviceId,
+        referralCode,
+        role: "user",
+        points: 0,
+        isBlocked: false,
+        referralEarnings: 0
+      });
 
-    const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    const hashedPassword = await hashPassword(password);
-    const user = await storage.createUser({
-      username,
-      password: hashedPassword,
-      phoneNumber,
-      deviceId,
-      referralCode,
-      role: "user",
-      points: 0,
-      isBlocked: false,
-      referralEarnings: 0
-    });
+      console.log("User created successfully:", user.username);
 
       req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json(user);
+        if (err) {
+          console.error("Login error after registration:", err);
+          return res.status(500).json({ message: "Login after registration failed" });
+        }
+        return res.status(201).json(user);
       });
-    } catch (err) {
-      next(err);
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      return res.status(400).json({ message: err.message || "Registration failed" });
     }
   });
 
