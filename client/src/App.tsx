@@ -16,7 +16,7 @@ import TriviaGame from "@/pages/games/TriviaGame";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
-function ProtectedRoute({ path, component: Component }: { path: string; component: React.ComponentType }) {
+function ProtectedRoute({ path, component: Component }: { path: string; component: React.ComponentType<any> }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {

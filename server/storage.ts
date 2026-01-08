@@ -1,19 +1,8 @@
-import { db } from "./db";
-import {
-  users,
-  withdrawals,
-  activities,
-  type User,
-  type InsertUser,
-  type Withdrawal,
-  type InsertWithdrawal,
-  type Activity,
-  type InsertActivity,
-} from "@shared/schema";
+import { users, withdrawals, activities, type User, type InsertUser, type Withdrawal, type Activity } from "@shared/schema";
+import { db, pool } from "./db";
 import { eq, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -23,19 +12,19 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByPhoneNumber(phone: string): Promise<User | undefined>;
   getUserByDeviceId(deviceId: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: any): Promise<User>;
   updateUserPoints(id: number, points: number): Promise<User>;
   updateUserBlockStatus(id: number, isBlocked: boolean): Promise<User>;
   getAllUsers(): Promise<User[]>;
 
   // Withdrawal
-  createWithdrawal(withdrawal: InsertWithdrawal): Promise<Withdrawal>;
+  createWithdrawal(withdrawal: any): Promise<Withdrawal>;
   getWithdrawalsByUser(userId: number): Promise<Withdrawal[]>;
   getAllWithdrawals(): Promise<Withdrawal[]>;
   updateWithdrawalStatus(id: number, status: string): Promise<Withdrawal>;
 
   // Activity
-  createActivity(activity: InsertActivity): Promise<Activity>;
+  createActivity(activity: any): Promise<Activity>;
   getActivitiesByUser(userId: number): Promise<Activity[]>;
 
   sessionStore: session.Store;
@@ -121,7 +110,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWithdrawal(
-    insertWithdrawal: InsertWithdrawal,
+    insertWithdrawal: any,
   ): Promise<Withdrawal> {
     const [withdrawal] = await db
       .insert(withdrawals)
@@ -157,7 +146,7 @@ export class DatabaseStorage implements IStorage {
     return withdrawal;
   }
 
-  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+  async createActivity(insertActivity: any): Promise<Activity> {
     const [activity] = await db
       .insert(activities)
       .values(insertActivity)
@@ -175,14 +164,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
-import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
-
-const PgSession = connectPg(session);
-
-export const sessionStore = new PgSession({
-  pool,
-  tableName: "session",
-  createTableIfMissing: true,
-});
+export const sessionStore = storage.sessionStore;
