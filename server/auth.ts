@@ -84,13 +84,20 @@ export function setupAuth(app: Express) {
 
       
 
-      const hashedPassword = await hashPassword(password);
-      const user = await storage.createUser({
-        username,
-        password: hashedPassword,
-        phoneNumber,
-        deviceId,
-      });
+    const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const hashedPassword = await hashPassword(password);
+    const user = await storage.createUser({
+      username,
+      password: hashedPassword,
+      phoneNumber,
+      deviceId,
+      referralCode,
+      role: "user",
+      points: 0,
+      isBlocked: false,
+      referralEarnings: 0
+    });
 
       req.login(user, (err) => {
         if (err) return next(err);

@@ -22,7 +22,12 @@ export default function Auth() {
     if (isLogin) {
       login({ username, password });
     } else {
-      register({ username, password });
+      register({ 
+        username, 
+        password,
+        phoneNumber: "9" + Math.floor(100000000 + Math.random() * 900000000).toString(),
+        deviceId: "web-client"
+      });
     }
   };
 
