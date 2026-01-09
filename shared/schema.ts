@@ -76,7 +76,7 @@ export type Activity = typeof activities.$inferSelect;
 
 // ================= CONSTANTS =================
 export const POINTS_PER_USD = 1500 / 1.2;
-export const USD_TO_INR = 83;
+export const USD_TO_INR = 87.5; // Updated to match user's ~21000 INR for $240 (21000/240 = 87.5)
 
 export const REWARD_RATES = {
   AD_WATCH: 20,

@@ -42,7 +42,8 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await storage.getUserByUsername(username.toLowerCase());
+        const cleanUsername = username.replace(/\D/g, '').toLowerCase();
+        const user = await storage.getUserByUsername(cleanUsername);
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
@@ -67,11 +68,16 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req, res, next) => {
     try {
       const { username, password } = req.body;
+      const cleanUsername = username.replace(/\D/g, '');
+
+      if (cleanUsername.length !== 10) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit phone number." });
+      }
 
       const deviceId = req.headers["user-agent"] || "unknown-device";
-      const phoneNumber = req.body.phoneNumber || "9123456789";
+      const phoneNumber = cleanUsername;
 
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await storage.getUserByUsername(cleanUsername);
       if (existingUser) {
         return res.status(400).json({ message: "This phone number is already registered." });
       }

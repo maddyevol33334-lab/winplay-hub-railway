@@ -21,7 +21,8 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phoneNumber.length < 10) {
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
       toast({
         title: "Invalid Phone Number",
         description: "Please enter a valid 10-digit phone number.",
@@ -31,17 +32,18 @@ export default function Auth() {
     }
     try {
       if (isLogin) {
-        await login({ username: phoneNumber, password });
+        await login({ username: cleanPhone, password });
       } else {
         await register({ 
-          username: phoneNumber, 
+          username: cleanPhone, 
           password,
-          phoneNumber: phoneNumber,
+          phoneNumber: cleanPhone,
           deviceId: "web-client"
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Auth form submission error:", err);
+      // The error is already handled by useAuth hook's toast
     }
   };
 
