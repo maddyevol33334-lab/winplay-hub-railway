@@ -19,18 +19,30 @@ export default defineConfig({
         ]
       : []),
   ],
+
+  // We are ALREADY inside /client when building
+root: path.resolve(import.meta.dirname, "client"),
+build: {
+  outDir: path.resolve(import.meta.dirname, "dist/public"),
+  emptyOutDir: true,
+  rollupOptions: {
+    input: path.resolve(import.meta.dirname, "client/index.html"),
+  },
+},
+
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@": path.resolve(import.meta.dirname, "src"),
+      "@shared": path.resolve(import.meta.dirname, "../shared"),
+      "@assets": path.resolve(import.meta.dirname, "../attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
-    emptyOutDir: true,
-  },
+
+build: {
+  outDir: path.resolve(import.meta.dirname, "dist"),
+  emptyOutDir: true,
+},
+
   server: {
     fs: {
       strict: true,
