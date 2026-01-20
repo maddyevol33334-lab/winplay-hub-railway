@@ -1,19 +1,14 @@
-
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { useAuth } from "@/hooks/use-auth";
-import Home from "@/pages/Home";
-import Auth from "@/pages/Auth";
-import Profile from "@/pages/Profile";
-import Wallet from "@/pages/Wallet";
-import Admin from "@/pages/Admin";
-import Games from "@/pages/Games";
-import ProQuiz from "@/pages/games/ProQuiz";
-import MemoryGame from "@/pages/games/MemoryGame";
-import TriviaGame from "@/pages/games/TriviaGame";
-import NotFound from "@/pages/not-found";
+import { Toaster } from "./toaster";
+import Home from "./pages/Home";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import Wallet from "./pages/Wallet";
+import Admin from "./pages/Admin";
+import Games from "./pages/Games";
+import ProQuiz from "./pages/games/ProQuiz";
+import MemoryGame from "./pages/games/MemoryGame";
+import TriviaGame from "./pages/games/TriviaGame";
+import NotFound from "./pages/not-found";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ path, component: Component }: { path: string; component: React.ComponentType<any> }) {

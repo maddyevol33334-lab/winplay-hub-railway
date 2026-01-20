@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useGame } from "@/hooks/use-game";
+import { useGame } from "../hooks/use-game";
 import { Layout } from "@/components/Layout";
 import { LogOut, Shield, Gamepad2, User as UserIcon } from "lucide-react";
 import { Link } from "wouter";
