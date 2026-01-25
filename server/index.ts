@@ -5,7 +5,9 @@ import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
-
+app.get("/", (_req, res) => {
+  res.status(200).send("🚀 WinPlay Hub API is running");
+});
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
