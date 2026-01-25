@@ -8,6 +8,9 @@ const httpServer = createServer(app);
 app.get("/", (_req, res) => {
   res.status(200).send("🚀 WinPlay Hub API is running");
 });
+app.get("/api", (_req, res) => {
+  res.json({ status: "API is working" });
+});
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
