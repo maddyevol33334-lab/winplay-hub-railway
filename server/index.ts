@@ -6,21 +6,6 @@ import { createServer } from "http";
 const app = express();
 const httpServer = createServer(app);
 import session from "express-session";
-import { sessionStore } from "./storage";
-
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || "winplay_secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // Railway uses HTTPS via proxy
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
-  })
-);
 app.get("/", (_req, res) => {
   res.status(200).send("🚀 WinPlay Hub API is running");
 });
