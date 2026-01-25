@@ -13,7 +13,14 @@ export async function registerRoutes(
 ): Promise<Server> {
   // Setup Auth (Passport)
   setupAuth(app);
-// === API HEALTH CHECK ===
+// 🔍 DEBUG — AUTH TEST (TEMP)
+app.get("/api/__debug_auth", (req, res) => {
+  res.json({
+    authenticated: req.isAuthenticated?.() ?? false,
+    user: req.user ?? null,
+  });
+});
+  // === API HEALTH CHECK ===
 app.get("/api", (_req, res) => {
   res.json({ status: "API is working" });
 });
