@@ -5,6 +5,13 @@ import { createServer } from "http";
 
 const app = express();
 const httpServer = createServer(app);
+app.get("/api/db-test", async (_req, res) => {
+  try {
+    res.json({ db: "reachable" });
+  } catch (err) {
+    res.status(500).json({ error: "db failed" });
+  }
+});
 app.get("/", (_req, res) => {
   res.status(200).send("🚀 WinPlay Hub API is running");
 });
