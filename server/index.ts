@@ -95,4 +95,4 @@ if (!PORT) {
 httpServer.listen(PORT, "0.0.0.0", () => {
   log(`🚀 Server running on port ${PORT}`);
 });
-  
+})();
