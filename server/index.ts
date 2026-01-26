@@ -84,11 +84,15 @@ app.use((req, res, next) => {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
+// ALWAYS serve the app on the port specified in the environment variable PORT
+// Railway will kill the container if this is wrong
+const PORT = Number(process.env.PORT);
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-// Default to 8080 if not specified (Railway-safe)
-  const PORT = Number(process.env.PORT) || 8080;
+if (!PORT) {
+  throw new Error("❌ PORT environment variable is not set");
+}
 
 httpServer.listen(PORT, "0.0.0.0", () => {
   log(`🚀 Server running on port ${PORT}`);
 });
+  
