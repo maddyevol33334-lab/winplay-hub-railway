@@ -1,4 +1,5 @@
 
+import type { CookieOptions } from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { type Express } from "express";
@@ -23,15 +24,17 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+const cookieOptions: CookieOptions = {
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "none",
+};
+
 const sessionSettings: session.SessionOptions = {
   secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_k3y",
   resave: false,
   saveUninitialized: false,
   store: storage.sessionStore,
-  cookie: {
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none" as const,
-  },
+  cookie: cookieOptions,
 };
 
   if (app.get("env") === "production") {
