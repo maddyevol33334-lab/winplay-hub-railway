@@ -23,13 +23,16 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_k3y",
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-  };
+const sessionSettings: session.SessionOptions = {
+  secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_k3y",
+  resave: false,
+  saveUninitialized: false,
+  store: storage.sessionStore,
+  cookie: {
+    secure: app.get("env") === "production",
+    sameSite: "none",
+  },
+};
 
   if (app.get("env") === "production") {
     app.set("trust proxy", 1);
