@@ -133,4 +133,3 @@ const sessionSettings: session.SessionOptions = {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
-}
