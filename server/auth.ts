@@ -29,8 +29,8 @@ const sessionSettings: session.SessionOptions = {
   saveUninitialized: false,
   store: storage.sessionStore,
   cookie: {
-    secure: app.get("env") === "production",
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none" as const,
   },
 };
 
