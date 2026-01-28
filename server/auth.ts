@@ -24,18 +24,19 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-const cookieOptions: CookieOptions = {
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none",
-};
+export function setupAuth(app: Express) {
+  const cookieOptions: CookieOptions = {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+  };
 
-const sessionSettings: session.SessionOptions = {
-  secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_k3y",
-  resave: false,
-  saveUninitialized: false,
-  store: storage.sessionStore,
-  cookie: cookieOptions,
-};
+  const sessionSettings: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || "r3pl1t_s3cr3t_k3y",
+    resave: false,
+    saveUninitialized: false,
+    store: storage.sessionStore,
+    cookie: cookieOptions,
+  };
 
   if (app.get("env") === "production") {
     app.set("trust proxy", 1);
@@ -48,20 +49,22 @@ const sessionSettings: session.SessionOptions = {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
-        const cleanUsername = username.replace(/\D/g, '').toLowerCase();
+        const cleanUsername = username.replace(/\D/g, "").toLowerCase();
         const user = await storage.getUserByUsername(cleanUsername);
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
-        } else {
-          return done(null, user);
         }
+        return done(null, user);
       } catch (err) {
         return done(err);
       }
     })
   );
 
-  passport.serializeUser((user, done) => done(null, (user as User).id));
+  passport.serializeUser((user, done) =>
+    done(null, (user as User).id)
+  );
+
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
@@ -71,55 +74,47 @@ const sessionSettings: session.SessionOptions = {
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const { username, password } = req.body;
-      const cleanUsername = username.replace(/\D/g, '');
+      const cleanUsername = username.replace(/\D/g, "");
 
       if (cleanUsername.length !== 10) {
-        return res.status(400).json({ message: "Please enter a valid 10-digit phone number." });
+        return res.status(400).json({ message: "Invalid phone number" });
       }
-
-      const deviceId = req.headers["user-agent"] || "unknown-device";
-      const phoneNumber = cleanUsername;
 
       const existingUser = await storage.getUserByUsername(cleanUsername);
       if (existingUser) {
-        return res.status(400).json({ message: "This phone number is already registered." });
+        return res.status(400).json({ message: "Already registered" });
       }
 
-      const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       const hashedPassword = await hashPassword(password);
-      
+
       const user = await storage.createUser({
         username,
         password: hashedPassword,
-        phoneNumber,
-        deviceId,
-        referralCode,
+        phoneNumber: cleanUsername,
+        deviceId: req.headers["user-agent"] || "unknown",
+        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
         role: "user",
         points: 0,
         isBlocked: false,
-        referralEarnings: 0
+        referralEarnings: 0,
       });
-
-      console.log("User created successfully:", user.username);
 
       req.login(user, (err) => {
         if (err) {
-          console.error("Login error after registration:", err);
-          return res.status(500).json({ message: "Login after registration failed" });
+          return res.status(500).json({ message: "Login failed" });
         }
-        return res.status(201).json(user);
+        res.status(201).json(user);
       });
     } catch (err: any) {
-      console.error("Registration error:", err);
-      return res.status(400).json({ message: err.message || "Registration failed" });
+      res.status(400).json({ message: err.message });
     }
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+    res.json(req.user);
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -133,3 +128,4 @@ const sessionSettings: session.SessionOptions = {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+}
