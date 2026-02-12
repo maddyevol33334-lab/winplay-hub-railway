@@ -12,9 +12,7 @@ app.get("/api/db-test", async (_req, res) => {
     res.status(500).json({ error: "db failed" });
   }
 });
-app.get("/", (_req, res) => {
-  res.status(200).send("🚀 WinPlay Hub API is running");
-});
+
 app.get("/api", (_req, res) => {
   res.json({ status: "API is working" });
 });
